@@ -17,10 +17,26 @@ def get_vehicle_positions():
     vehicle_positions = [MessageToDict(entity.vehicle) for entity in feed.entity]
     df = pd.json_normalize(vehicle_positions)
     
-    # Rename columns for easier access
+    # Prepare columns for map display
     if 'position.latitude' in df.columns and 'position.longitude' in df.columns:
         df['lat'] = df['position.latitude']
         df['lon'] = df['position.longitude']
+        
+        # Add icon data for each vehicle
+        df['icon_data'] = None
+        df['icon_data'] = df.apply(lambda x: {
+            "url": "assets/bus_icon.png",
+            "width": 64,
+            "height": 64,
+            "anchorY": 32,
+            "anchorX": 32,
+        }, axis=1)
+        
+        # Handle bearing/rotation
+        if 'position.bearing' in df.columns:
+            df['angle'] = df['position.bearing']
+        else:
+            df['angle'] = 0
     
     return df
 

@@ -2,28 +2,38 @@ import streamlit as st
 import pydeck as pdk
 from gtfs_r import get_vehicle_positions
 import time
+import os
 
-st.title('PN Rapid Bus Real-time Tracker')
+st.title('Rapid Bus Real-time Tracker')
+
+# Create assets directory if it doesn't exist
+os.makedirs('assets', exist_ok=True)
 
 def create_map(data):
     if 'lat' in data.columns and 'lon' in data.columns:
+        # Add rotation based on vehicle bearing if available
+        data['angle'] = 0  # default angle
+        if 'position.bearing' in data.columns:
+            data['angle'] = data['position.bearing']
+
         view_state = pdk.ViewState(
             latitude=data['lat'].mean(),
             longitude=data['lon'].mean(),
-            zoom=11,
+            zoom=12,
             pitch=0
         )
         
         layer = pdk.Layer(
-            'ScatterplotLayer',
+            'IconLayer',
             data,
             get_position=['lon', 'lat'],
-            get_radius=100,
-            get_fill_color=[255, 0, 0, 140],
+            get_icon='icon_data',
+            get_size=3,
+            get_angle='angle',
             pickable=True,
+            size_scale=10,
             opacity=0.8,
-            stroked=True,
-            filled=True
+            icon_allow_overlap=False
         )
 
         tooltip = {
@@ -36,7 +46,8 @@ def create_map(data):
         return pdk.Deck(
             layers=[layer],
             initial_view_state=view_state,
-            tooltip=tooltip
+            tooltip=tooltip,
+            map_style='road'
         )
     return None
 
@@ -68,6 +79,11 @@ while True:
         st.write(f'Total Vehicles: {len(df)}')
         st.dataframe(df)
     
+    if not st.session_state.refresh:
+        break
+        
+    time.sleep(refresh_interval)
+    st.rerun()
     if not st.session_state.refresh:
         break
         
