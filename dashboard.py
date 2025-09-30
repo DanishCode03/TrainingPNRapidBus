@@ -4,13 +4,37 @@ from gtfs_r import get_vehicle_positions
 import time
 import os
 
-st.title('Rapid Bus Real-time Tracker')
+# Add custom styling
+st.markdown("""
+    <style>
+        .title-container {
+            background-color: #0e1117;
+            padding: 1rem;
+            margin-bottom: 5rem;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .title-text {
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
+# Title in styled container
+st.markdown('<div class="title-container"><p class="title-text">Rapid Bus Real-time Tracker</p></div>', unsafe_allow_html=True)
 
 # Create assets directory if it doesn't exist
 os.makedirs('assets', exist_ok=True)
 
 def create_map(data):
     if 'lat' in data.columns and 'lon' in data.columns:
+        # Verify icon data
+        if 'icon_data' not in data.columns:
+            st.error("Icon data not found in vehicle data")
+            return None
+
         # Add rotation based on vehicle bearing if available
         data['angle'] = 0  # default angle
         if 'position.bearing' in data.columns:

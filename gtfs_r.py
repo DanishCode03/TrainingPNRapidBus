@@ -3,9 +3,14 @@ from google.transit import gtfs_realtime_pb2
 from google.protobuf.json_format import MessageToDict
 import pandas as pd
 from requests import get
+import os
+from utils import image_to_data_url
  
 # Sample GTFS-R URL from Malaysia's Open API
 URL = 'https://api.data.gov.my/gtfs-realtime/vehicle-position/prasarana?category=rapid-bus-kl'
+
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+ICON_PATH = os.path.join(CURRENT_DIR, "assets", "bus.png")
 
 def get_vehicle_positions():
     # Parse the GTFS Realtime feed
@@ -22,10 +27,13 @@ def get_vehicle_positions():
         df['lat'] = df['position.latitude']
         df['lon'] = df['position.longitude']
         
-        # Add icon data for each vehicle
+        # Convert icon to data URL
+        icon_data_url = image_to_data_url(ICON_PATH)
+        
+        # Add icon data with data URL
         df['icon_data'] = None
         df['icon_data'] = df.apply(lambda x: {
-            "url": "assets/bus_icon.png",
+            "url": icon_data_url,
             "width": 64,
             "height": 64,
             "anchorY": 32,
